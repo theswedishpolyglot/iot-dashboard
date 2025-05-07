@@ -18,7 +18,7 @@ You can set up open-source tools to make collection, storage, and graphing such 
    - mqtt://cscloud7-148.lnu.se:1883
    - user: iotlab
    - pass: iotlab
-   - topic: as of now 'data/sht30' which holds temperature and humidity. Considering adding TVOC from another sensor aswell on a different topic.
+   - topic: 'data/1dv027' which holds temperature and humidity. Considering adding TVOC from another sensor aswell on a different topic.
     format: json
 
 2. **Analyze the incoming data**, which includes:

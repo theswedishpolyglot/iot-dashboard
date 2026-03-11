@@ -136,18 +136,6 @@ If you used additional repositories or external services, include links to them 
 - **G:** Complete all mandatory requirements in this README.
 - **VG:** Complete all mandatory requirements **and** at least one optional VG extension.
 
-### Grading Policy Mapping
-
-- **Mandatory (G) mapping:** Equivalent to completing Issue 1-7 in `ISSUES.md`.
-- **Optional (VG) mapping:** Equivalent to completing at least one of VG-A, VG-B, or VG-C in `ISSUES.md`.
-- **VG quality threshold:** Optional issue work must include required security considerations and evidence artifacts.
-
-### Optional VG Extensions (choose one or more)
-
-- **TIG stack observability:** Telegraf + InfluxDB + Grafana pipeline with dashboard evidence.
-- **Mobile companion app:** Realtime mobile client (React Native/Flutter) with sensor view and LED control.
-- **Self-hosted MQTT broker:** Deploy and secure your own broker with authentication and topic ACLs.
-
 For any VG extension, include:
 - Security considerations (secrets handling, credentials, access restrictions).
 - Evidence (screenshots/video/logs) and short technical reflection.

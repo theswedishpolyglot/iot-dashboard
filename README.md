@@ -19,22 +19,24 @@ You will simulate an IoT device in [Wokwi](https://wokwi.com/). The simulated de
 - Publish sensor data to an MQTT broker on a recurring interval.
 - Subscribe to command topics and react to incoming control messages (for example, toggling an LED).
 
-You will also build a web application that:
+You will also build a dashboard interface that:
 - Subscribes to sensor updates in real time.
 - Visualizes current and/or historical values.
 - Publishes command messages back to the device.
 
-You are expected to include a backend service for persistence, API access, and realtime data handling.
+You are expected to implement persistence and realtime data handling using one of these mandatory implementation paths:
+- **Path A (Custom app stack):** custom backend + custom dashboard UI.
+- **Path C (Node-RED stack):** Node-RED flow + Node-RED dashboard UI.
 
 ## Minimum Requirements (Mandatory / G)
 
 Your solution must include:
 - A working Wokwi simulation.
-- A Node.js backend that ingests sensor data from MQTT.
+- A data-processing layer that ingests sensor data from MQTT (custom backend or Node-RED flow).
 - MQTT publish and subscribe flows (device -> dashboard/backend and dashboard -> device).
-- A deployed dashboard frontend.
+- A deployed dashboard UI (custom frontend or Node-RED dashboard).
 - Persistent data storage in a database of your choice.
-- A backend API endpoint to fetch historical data for the frontend.
+- A historical data access layer for dashboard initialization (custom API or Node-RED data flow).
 - A short report documenting your implementation.
 
 Wokwi setup:
@@ -86,8 +88,8 @@ Briefly describe:
 
 ### 3) Architecture and Data Flow
 Explain how data moves through your system:
-- Wokwi device -> MQTT broker -> backend/database -> frontend.
-- Frontend -> MQTT command topic -> device action.
+- Wokwi device -> MQTT broker -> processing layer/database -> dashboard.
+- Dashboard -> MQTT command topic -> device action.
 
 Use the placeholder below and replace it with your own architecture screenshot or diagram:
 
@@ -117,7 +119,7 @@ Document:
 - **Time-series considerations:** retention, indexing, query strategy, aggregation, etc.
 
 ### 5) MQTT Topics and Payload Documentation
-List all topics used and provide example payloads. This should be precise enough to serve as API documentation for your device integration.
+List all topics used and provide example payloads. This should be precise enough to serve as integration documentation for your device and dashboard communication.
 
 ### 6) Reflection
 Answer the following:
@@ -135,6 +137,12 @@ If you used additional repositories or external services, include links to them 
 
 - **G:** Complete all mandatory requirements in this README.
 - **VG:** Complete all mandatory requirements **and** at least one optional VG extension.
+
+### Grading Policy Mapping
+
+- **Mandatory (G) mapping:** Equivalent to completing Issue 1-7 in `ISSUES.md`.
+- **Issue 4 path rule:** You must complete either Path A (custom API) or Path C (Node-RED historical access), and document your chosen approach.
+- **Optional (VG) mapping:** Equivalent to completing at least one of VG-A, VG-B, or VG-C in `ISSUES.md`.
 
 For any VG extension, include:
 - Security considerations (secrets handling, credentials, access restrictions).

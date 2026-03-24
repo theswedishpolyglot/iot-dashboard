@@ -108,7 +108,7 @@ flowchart TD
   C --> D[(Database)]
   C -->|REST API| E[Web Dashboard]
   E <-->|WebSocket, realtid| C
-  E -->|skicka kommando| C
+  E -->|send command| C
   C -->|MQTT publish: command| B
   B -->|control message| A
 ```

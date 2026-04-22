@@ -40,8 +40,8 @@ Your solution must include:
 - A short report documenting your implementation.
 
 Wokwi setup:
-- If a starter project is provided in Moodle, use it.
-- If not, build your own equivalent setup (ESP32 + sensor + LED).
+- Use a starter project that is provided in Moodle
+- Or build your own equivalent setup (MCU + sensor + LED).
 
 ## Recommended MQTT Topics and Payloads
 

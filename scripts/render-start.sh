@@ -9,13 +9,8 @@ echo "Starting Node-RED on port $PORT"
 
 mkdir -p "$DATA_DIR"
 
-if [ ! -f "$DATA_DIR/flows.json" ]; then
-  cp /app/default-data/flows.json "$DATA_DIR/flows.json"
-fi
-
-if [ ! -f "$DATA_DIR/package.json" ]; then
-  cp /app/default-data/package.json "$DATA_DIR/package.json"
-fi
+cp /app/default-data/flows.json "$DATA_DIR/flows.json"
+cp /app/default-data/package.json "$DATA_DIR/package.json"
 
 chown -R node-red:node-red "$DATA_DIR"
 

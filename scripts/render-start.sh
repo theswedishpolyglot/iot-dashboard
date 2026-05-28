@@ -5,6 +5,8 @@ DATA_DIR="${NODE_RED_DATA_DIR:-/data}"
 PORT="${PORT:-1880}"
 FLOW_FILE="flows.json"
 
+echo "Starting Node-RED on port $PORT"
+
 mkdir -p "$DATA_DIR"
 
 if [ ! -f "$DATA_DIR/flows.json" ]; then

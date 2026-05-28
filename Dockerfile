@@ -12,4 +12,4 @@ RUN chmod +x /usr/local/bin/render-start \
 
 EXPOSE 1880
 
-CMD ["render-start"]
+ENTRYPOINT ["/usr/local/bin/render-start"]

@@ -10,8 +10,6 @@ COPY scripts/prepare-render-flow.mjs /app/scripts/prepare-render-flow.mjs
 RUN chmod +x /usr/local/bin/render-start \
   && chown -R node-red:node-red /app
 
-USER node-red
-
 EXPOSE 1880
 
 CMD ["render-start"]

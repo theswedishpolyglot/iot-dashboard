@@ -15,8 +15,10 @@ if [ ! -f "$DATA_DIR/package.json" ]; then
   cp /app/default-data/package.json "$DATA_DIR/package.json"
 fi
 
+chown -R node-red:node-red "$DATA_DIR"
+
 cd "$DATA_DIR"
-npm install --omit=dev --no-audit --no-fund
+su node-red -c "npm install --omit=dev --no-audit --no-fund"
 
 if [ -n "${DATABASE_URL:-}" ]; then
   eval "$(
@@ -35,12 +37,12 @@ console.log(`export PGDATABASE=${quote(decodeURIComponent(url.pathname.slice(1))
 JS
   )"
 
-  node /app/scripts/prepare-render-flow.mjs "$DATA_DIR/flows.json" "$DATA_DIR/flows.render.json"
+  su node-red -c "node /app/scripts/prepare-render-flow.mjs '$DATA_DIR/flows.json' '$DATA_DIR/flows.render.json'"
   FLOW_FILE="flows.render.json"
 fi
 
 if [ -f /app/default-data/render-settings.js ]; then
-  exec node-red --settings /app/default-data/render-settings.js --userDir "$DATA_DIR" --flowFile "$FLOW_FILE" --port "$PORT"
+  exec su node-red -c "node-red --settings /app/default-data/render-settings.js --userDir '$DATA_DIR' --flowFile '$FLOW_FILE' --port '$PORT'"
 fi
 
-exec node-red --userDir "$DATA_DIR" --flowFile "$FLOW_FILE" --port "$PORT"
+exec su node-red -c "node-red --userDir '$DATA_DIR' --flowFile '$FLOW_FILE' --port '$PORT'"

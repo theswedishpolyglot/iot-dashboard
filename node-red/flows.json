@@ -1,0 +1,471 @@
+[
+  {
+    "id": "flow_iot",
+    "type": "tab",
+    "label": "IoT Dashboard",
+    "disabled": false,
+    "info": ""
+  },
+  {
+    "id": "mqtt_broker",
+    "type": "mqtt-broker",
+    "name": "HiveMQ public broker",
+    "broker": "broker.hivemq.com",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "willMsg": {},
+    "sessionExpiry": ""
+  },
+  {
+    "id": "sqlite_db",
+    "type": "sqlitedb",
+    "db": "iot.sqlite",
+    "mode": "RWC"
+  },
+  {
+    "id": "ui_tab_iot",
+    "type": "ui_tab",
+    "name": "IoT Dashboard",
+    "icon": "dashboard",
+    "order": 1,
+    "disabled": false,
+    "hidden": false
+  },
+  {
+    "id": "ui_group_live",
+    "type": "ui_group",
+    "name": "Live sensor",
+    "tab": "ui_tab_iot",
+    "order": 1,
+    "disp": true,
+    "width": "6",
+    "collapse": false,
+    "className": ""
+  },
+  {
+    "id": "ui_group_history",
+    "type": "ui_group",
+    "name": "History",
+    "tab": "ui_tab_iot",
+    "order": 2,
+    "disp": true,
+    "width": "12",
+    "collapse": false,
+    "className": ""
+  },
+  {
+    "id": "inject_create_table",
+    "type": "inject",
+    "z": "flow_iot",
+    "name": "Create readings table",
+    "props": [
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "0.5",
+    "topic": "CREATE TABLE IF NOT EXISTS readings (id INTEGER PRIMARY KEY AUTOINCREMENT, value REAL NOT NULL, device_timestamp INTEGER, received_at TEXT NOT NULL);",
+    "x": 160,
+    "y": 80,
+    "wires": [
+      [
+        "sqlite_create"
+      ]
+    ]
+  },
+  {
+    "id": "sqlite_create",
+    "type": "sqlite",
+    "z": "flow_iot",
+    "mydb": "sqlite_db",
+    "sqlquery": "msg.topic",
+    "sql": "",
+    "name": "SQLite",
+    "x": 400,
+    "y": 80,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "mqtt_sensor_in",
+    "type": "mqtt in",
+    "z": "flow_iot",
+    "name": "Sensor MQTT in",
+    "topic": "lnu/iot/wm222et/sensor",
+    "qos": "0",
+    "datatype": "utf8",
+    "broker": "mqtt_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 130,
+    "y": 180,
+    "wires": [
+      [
+        "json_sensor"
+      ]
+    ]
+  },
+  {
+    "id": "json_sensor",
+    "type": "json",
+    "z": "flow_iot",
+    "name": "Parse JSON",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 320,
+    "y": 180,
+    "wires": [
+      [
+        "fn_prepare_reading"
+      ]
+    ]
+  },
+  {
+    "id": "fn_prepare_reading",
+    "type": "function",
+    "z": "flow_iot",
+    "name": "Prepare reading",
+    "func": "const value = Number(msg.payload.value);\nif (!Number.isFinite(value)) return null;\n\nconst timestamp = Number(msg.payload.timestamp) || Math.floor(Date.now() / 1000);\nconst receivedAt = new Date().toISOString();\n\nconst live = {\n    payload: value,\n    topic: 'Temperature',\n    reading: { value, timestamp, receivedAt }\n};\n\nconst insert = {\n    topic: `INSERT INTO readings (value, device_timestamp, received_at) VALUES (${value}, ${timestamp}, '${receivedAt}');`\n};\n\nreturn [live, insert];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 530,
+    "y": 180,
+    "wires": [
+      [
+        "ui_gauge_temperature",
+        "ui_chart_temperature",
+        "debug_live"
+      ],
+      [
+        "sqlite_insert"
+      ]
+    ]
+  },
+  {
+    "id": "sqlite_insert",
+    "type": "sqlite",
+    "z": "flow_iot",
+    "mydb": "sqlite_db",
+    "sqlquery": "msg.topic",
+    "sql": "",
+    "name": "Save reading",
+    "x": 780,
+    "y": 220,
+    "wires": [
+      [
+        "trigger_refresh_history"
+      ]
+    ]
+  },
+  {
+    "id": "trigger_refresh_history",
+    "type": "change",
+    "z": "flow_iot",
+    "name": "Select latest history",
+    "rules": [
+      {
+        "t": "set",
+        "p": "topic",
+        "pt": "msg",
+        "to": "SELECT value, device_timestamp, received_at FROM readings ORDER BY id DESC LIMIT 20;",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 1010,
+    "y": 220,
+    "wires": [
+      [
+        "sqlite_history"
+      ]
+    ]
+  },
+  {
+    "id": "inject_history",
+    "type": "inject",
+    "z": "flow_iot",
+    "name": "Load history",
+    "props": [
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "10",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "1",
+    "topic": "SELECT value, device_timestamp, received_at FROM readings ORDER BY id DESC LIMIT 20;",
+    "x": 160,
+    "y": 320,
+    "wires": [
+      [
+        "sqlite_history"
+      ]
+    ]
+  },
+  {
+    "id": "sqlite_history",
+    "type": "sqlite",
+    "z": "flow_iot",
+    "mydb": "sqlite_db",
+    "sqlquery": "msg.topic",
+    "sql": "",
+    "name": "Read history",
+    "x": 400,
+    "y": 320,
+    "wires": [
+      [
+        "ui_history_template"
+      ]
+    ]
+  },
+  {
+    "id": "ui_gauge_temperature",
+    "type": "ui_gauge",
+    "z": "flow_iot",
+    "name": "Current temperature",
+    "group": "ui_group_live",
+    "order": 1,
+    "width": 3,
+    "height": 3,
+    "gtype": "gage",
+    "title": "Current temperature",
+    "label": "C",
+    "format": "{{value | number:1}}",
+    "min": 0,
+    "max": "50",
+    "colors": [
+      "#2b7cff",
+      "#36a269",
+      "#d68d1f"
+    ],
+    "seg1": "18",
+    "seg2": "28",
+    "diff": false,
+    "className": "",
+    "x": 800,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "ui_chart_temperature",
+    "type": "ui_chart",
+    "z": "flow_iot",
+    "name": "Temperature chart",
+    "group": "ui_group_history",
+    "order": 1,
+    "width": 12,
+    "height": 5,
+    "label": "Live temperature",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "Waiting for sensor data",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": "30",
+    "removeOlderPoints": "",
+    "removeOlderUnit": "60",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#36a269",
+      "#2b7cff",
+      "#d68d1f",
+      "#2f3440",
+      "#8b5cf6",
+      "#ef4444",
+      "#14b8a6",
+      "#f97316",
+      "#64748b"
+    ],
+    "outputs": 1,
+    "useDifferentColor": false,
+    "className": "",
+    "x": 800,
+    "y": 180,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ui_history_template",
+    "type": "ui_template",
+    "z": "flow_iot",
+    "group": "ui_group_history",
+    "name": "History table",
+    "order": 2,
+    "width": 12,
+    "height": 5,
+    "format": "<table style=\"width:100%; border-collapse: collapse;\">\n  <thead>\n    <tr>\n      <th style=\"text-align:left; padding: 6px;\">Value</th>\n      <th style=\"text-align:left; padding: 6px;\">Device timestamp</th>\n      <th style=\"text-align:left; padding: 6px;\">Received</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr ng-repeat=\"row in msg.payload\">\n      <td style=\"padding: 6px; border-top: 1px solid #ddd;\">{{row.value | number:1}} C</td>\n      <td style=\"padding: 6px; border-top: 1px solid #ddd;\">{{row.device_timestamp * 1000 | date:'yyyy-MM-dd HH:mm:ss'}}</td>\n      <td style=\"padding: 6px; border-top: 1px solid #ddd;\">{{row.received_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>\n    </tr>\n  </tbody>\n</table>",
+    "storeOutMessages": true,
+    "fwdInMessages": true,
+    "resendOnRefresh": true,
+    "templateScope": "local",
+    "className": "",
+    "x": 640,
+    "y": 320,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ui_led_switch",
+    "type": "ui_switch",
+    "z": "flow_iot",
+    "name": "LED command",
+    "label": "LED",
+    "tooltip": "",
+    "group": "ui_group_live",
+    "order": 2,
+    "width": 3,
+    "height": 1,
+    "passthru": true,
+    "decouple": "false",
+    "topic": "",
+    "topicType": "str",
+    "style": "",
+    "onvalue": "true",
+    "onvalueType": "bool",
+    "onicon": "",
+    "oncolor": "",
+    "offvalue": "false",
+    "offvalueType": "bool",
+    "officon": "",
+    "offcolor": "",
+    "animate": false,
+    "className": "",
+    "x": 130,
+    "y": 440,
+    "wires": [
+      [
+        "fn_led_command"
+      ]
+    ]
+  },
+  {
+    "id": "fn_led_command",
+    "type": "function",
+    "z": "flow_iot",
+    "name": "Build LED command",
+    "func": "msg.payload = { state: Boolean(msg.payload) };\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 350,
+    "y": 440,
+    "wires": [
+      [
+        "json_led",
+        "debug_led"
+      ]
+    ]
+  },
+  {
+    "id": "json_led",
+    "type": "json",
+    "z": "flow_iot",
+    "name": "Stringify JSON",
+    "property": "payload",
+    "action": "str",
+    "pretty": false,
+    "x": 570,
+    "y": 440,
+    "wires": [
+      [
+        "mqtt_led_out"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_led_out",
+    "type": "mqtt out",
+    "z": "flow_iot",
+    "name": "LED MQTT out",
+    "topic": "lnu/iot/wm222et/command/led",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mqtt_broker",
+    "x": 790,
+    "y": 440,
+    "wires": []
+  },
+  {
+    "id": "debug_live",
+    "type": "debug",
+    "z": "flow_iot",
+    "name": "live reading debug",
+    "active": true,
+    "tosidebar": true,
+    "console": true,
+    "tostatus": false,
+    "complete": "reading",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 810,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "debug_led",
+    "type": "debug",
+    "z": "flow_iot",
+    "name": "LED command debug",
+    "active": true,
+    "tosidebar": true,
+    "console": true,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 580,
+    "y": 500,
+    "wires": []
+  }
+]

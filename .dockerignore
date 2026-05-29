@@ -1,0 +1,10 @@
+.git/
+node-red/node_modules/
+node-red/package-lock.json
+node-red/iot.sqlite
+node-red/.config*
+node-red/.sessions.json
+node-red/.flows_cred.json
+node-red/flows_cred.json
+node-red/settings.js
+node-red/lib/

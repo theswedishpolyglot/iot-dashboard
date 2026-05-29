@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "author": "wm222et",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht1", "top": -96, "left": 196, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": 102, "left": 216, "attrs": { "color": "orange" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 148, "left": 142, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "esp:3V3", "dht1:VCC", "red", [ "h-24", "v-80", "h208" ] ],
+    [ "esp:GND.1", "dht1:GND", "black", [ "h-36", "v-116", "h248" ] ],
+    [ "esp:15", "dht1:SDA", "green", [ "h90", "v-56" ] ],
+    [ "esp:2", "r1:1", "green", [ "h64", "v52" ] ],
+    [ "r1:2", "led1:A", "green", [ "h18" ] ],
+    [ "led1:C", "esp:GND.2", "black", [ "v34", "h-132", "v-76" ] ]
+  ],
+  "serialMonitor": {
+    "display": "always",
+    "newline": "lf",
+    "convertEol": false
+  },
+  "dependencies": {}
+}

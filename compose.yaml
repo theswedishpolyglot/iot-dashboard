@@ -1,0 +1,16 @@
+services:
+  node-red:
+    image: nodered/node-red:4.1.0
+    ports:
+      - "1880:1880"
+    environment:
+      TZ: Europe/Stockholm
+    volumes:
+      - ./node-red:/data
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        cd /data
+        npm install --omit=dev --no-audit --no-fund
+        exec node-red --userDir /data --flowFile flows.json

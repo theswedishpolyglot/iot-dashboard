@@ -38,6 +38,12 @@ const postgresNodeIds = new Set([
   'sqlite_history'
 ]);
 
+const sqliteHistoryQuery =
+  "SELECT value, device_timestamp, received_at FROM readings WHERE device_timestamp >= strftime('%s','now','-30 minutes') ORDER BY device_timestamp ASC;";
+
+const postgresHistoryQuery =
+  "SELECT value, device_timestamp, received_at FROM readings WHERE device_timestamp >= EXTRACT(EPOCH FROM NOW() - INTERVAL '30 minutes') ORDER BY device_timestamp ASC;";
+
 const transformed = flow
   .filter((node) => node.id !== 'sqlite_db')
   .map((node) => {
@@ -52,6 +58,22 @@ const transformed = flow
           'received_at TIMESTAMPTZ NOT NULL',
           ');'
         ].join(' ')
+      };
+    }
+
+    if (node.id === 'inject_history' && node.topic === sqliteHistoryQuery) {
+      return {
+        ...node,
+        topic: postgresHistoryQuery
+      };
+    }
+
+    if (node.id === 'trigger_refresh_history') {
+      return {
+        ...node,
+        rules: node.rules.map((rule) => (
+          rule.to === sqliteHistoryQuery ? { ...rule, to: postgresHistoryQuery } : rule
+        ))
       };
     }
 

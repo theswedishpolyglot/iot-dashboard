@@ -8,16 +8,17 @@
 - Backend/Database URL: Render service at https://iot-dashboard-t10c.onrender.com/ with a managed Render PostgreSQL database
 - Repository URL: https://gitlab.lnu.se/1dv027/student/wm222et/assignment-iot
 - Deployment mirror URL: https://github.com/theswedishpolyglot/iot-dashboard
+- MQTT Broker: `broker.emqx.io:1883`
 
 ## 2) Project Overview
 
-This project simulates an ESP32 device with a DHT22 temperature sensor and an LED. The device publishes temperature readings to MQTT every 5 seconds. A Node-RED flow subscribes to those readings, stores them in a database, and displays live and historical values in a Node-RED dashboard. The dashboard also has an LED switch that publishes a command back to the device over MQTT.
+This project simulates an ESP32 device with a DHT22 temperature sensor and an LED. The device publishes temperature readings to MQTT every 2 seconds. A Node-RED flow subscribes to those readings, stores them in a database, and displays live and historical values in a Node-RED dashboard. The dashboard also has an LED switch that publishes a command back to the device over MQTT.
 
 ## 3) Architecture and Data Flow
 
 ```mermaid
 flowchart TD
-  A[Wokwi ESP32 with DHT22 and LED] -->|MQTT publish sensor JSON| B[HiveMQ MQTT Broker]
+  A[Wokwi ESP32 with DHT22 and LED] -->|MQTT publish sensor JSON| B[EMQX MQTT Broker]
   B -->|MQTT subscribe| C[Node-RED Flow on Render]
   C -->|SQL insert/query| D[(PostgreSQL Database)]
   C -->|HTTPS dashboard and WebSocket updates| E[Web Dashboard]
@@ -33,9 +34,9 @@ The diagram shows how sensor data moves from the Wokwi device to the dashboard a
 - Database chosen: PostgreSQL on Render for the deployed version. SQLite is used only for local development.
 - Table: `readings`
 - Columns: `id`, `value`, `device_timestamp`, `received_at`
-- Query strategy: Node-RED inserts every MQTT reading into the database. The flow queries the latest 20 rows on startup, after new inserts, and every 10 seconds for the dashboard history table.
+- Query strategy: Node-RED inserts every MQTT reading into the database. The flow queries readings from the last 30 minutes on startup, after new inserts, and every 10 seconds for the dashboard history table and chart.
 
-The amount of data is small: one simulated device publishes one temperature reading every 5 seconds. PostgreSQL is more than enough for this scale and makes deployment on Render straightforward.
+The amount of data is small: one simulated device publishes one temperature reading every 2 seconds. PostgreSQL is more than enough for this scale and makes deployment on Render straightforward.
 
 ## 5) MQTT Topics and Payload Documentation
 

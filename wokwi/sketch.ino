@@ -9,7 +9,7 @@
 
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
-const char* mqttServer = "broker.hivemq.com";
+const char* mqttServer = "broker.emqx.io";
 const int mqttPort = 1883;
 
 const char* sensorTopic = "lnu/iot/wm222et/sensor";
@@ -20,7 +20,7 @@ PubSubClient mqttClient(wifiClient);
 DHT dht(DHT_PIN, DHT_TYPE);
 
 unsigned long lastPublish = 0;
-const unsigned long publishIntervalMs = 5000;
+const unsigned long publishIntervalMs = 2000;
 
 void connectWifi() {
   WiFi.begin(ssid, password);

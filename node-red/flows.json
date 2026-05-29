@@ -9,8 +9,8 @@
   {
     "id": "mqtt_broker",
     "type": "mqtt-broker",
-    "name": "HiveMQ public broker",
-    "broker": "broker.hivemq.com",
+    "name": "EMQX public broker",
+    "broker": "broker.emqx.io",
     "port": "1883",
     "clientid": "",
     "autoConnect": true,
@@ -195,7 +195,7 @@
         "t": "set",
         "p": "topic",
         "pt": "msg",
-        "to": "SELECT value, device_timestamp, received_at FROM readings ORDER BY id DESC LIMIT 20;",
+        "to": "SELECT value, device_timestamp, received_at FROM readings WHERE device_timestamp >= strftime('%s','now','-30 minutes') ORDER BY device_timestamp ASC;",
         "tot": "str"
       }
     ],
@@ -227,7 +227,7 @@
     "crontab": "",
     "once": true,
     "onceDelay": "1",
-    "topic": "SELECT value, device_timestamp, received_at FROM readings ORDER BY id DESC LIMIT 20;",
+    "topic": "SELECT value, device_timestamp, received_at FROM readings WHERE device_timestamp >= strftime('%s','now','-30 minutes') ORDER BY device_timestamp ASC;",
     "x": 160,
     "y": 320,
     "wires": [
@@ -248,7 +248,30 @@
     "y": 320,
     "wires": [
       [
+        "fn_render_history"
+      ]
+    ]
+  },
+  {
+    "id": "fn_render_history",
+    "type": "function",
+    "z": "flow_iot",
+    "name": "Render history",
+    "func": "const rows = Array.isArray(msg.payload) ? msg.payload : [];\n\nconst table = { payload: rows.slice().reverse() };\nconst chartMessages = rows.map((row) => ({\n    payload: Number(row.value),\n    topic: 'Temperature',\n    timestamp: Number(row.device_timestamp) * 1000\n}));\n\nreturn [table, chartMessages];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 610,
+    "y": 320,
+    "wires": [
+      [
         "ui_history_template"
+      ],
+      [
+        "ui_chart_temperature"
       ]
     ]
   },
